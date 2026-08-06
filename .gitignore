@@ -1,0 +1,8 @@
+#use to sensitive credentials file ignore
+firmware/SmartSwitch/config.h
+
+#To build a tempory files
+.vscode/
+*.temp
+*.log
+
