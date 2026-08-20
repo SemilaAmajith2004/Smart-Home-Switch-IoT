@@ -1,71 +1,54 @@
 %%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#E3F2FD', 'edgeLabelBackground':'#FFFFFF', 'tertiaryColor': '#fff'}}}%%
 
 graph TD
-    %% --- Subgraph for User Interface ---
+    %% --- User Interface Layer ---
     subgraph UI [User Interface Layer]
         A[User Voice Command]:::ui
-        D[Physical Wall Switch\n(Toggle/Push Button)]:::ui
+        D[Physical Wall Switch\nToggle/Push Button]:::ui
     end
 
-    %% --- Subgraph for Services & Logic ---
+    %% --- Cloud Layer ---
     subgraph Services [Cloud & Connectivity Layer]
-        B{Google Assistant\n(NLP & Action)}:::cloud
+        B{Google Assistant\nNLP & Action}:::cloud
         C{Sinric Pro\nCloud Platform}:::cloud
-        
-        %% Junction point for data flow to make the diagram look clean
-        Hub((Data<nHub)):::logic 
+        Hub((Data Hub)):::logic 
     end
 
-    %% --- Subgraph for Microcontroller ---
+    %% --- Microcontroller Layer ---
     subgraph MCU [Control Layer - NodeMCU ESP8266]
         E(ESP8266 Core\nFirmware Loop):::mcu
-        
-        %% Defining GPIO interfaces
         GPIO_In[GPIO Input\nInterface D2]:::logic
         GPIO_Out[GPIO Output\nInterface D1]:::logic
-        
-        %% Internal processes
         WiFi[Wi-Fi Stack\nWiFiManager]:::intern
         WebSocket[WebSocket Client\nSinricPro Lib]:::intern
     end
 
-    %% --- Subgraph for Hardware Output ---
+    %% --- Hardware Layer ---
     subgraph Output [Hardware Layer]
-        F[5V Relay Module\n(Active Low/High)]:::hard
+        F[5V Relay Module\nActive Low/High]:::hard
         G[230V AC\nLight Bulb]:::hard
     end
 
-    %% --- Connection Logic ---
-
-    %% Voice Path
+    %% --- Logical Flow Connections ---
     A -->|Starts Action| B
     B -->|API Request| C
     C -->|Secure Protocol| WebSocket
 
-    %% Cloud <-> MCU Link
-    WebSocket -->|Binds Data| WiFi
+    WebSocket -->|Data Link| WiFi
     WiFi <-->|Control & Status| Hub
-    Hub -->|Invokes Command| E
-    E -->|Updates Status| Hub
+    Hub <-->|Sync Commands| E
 
-    %% Internal MCU Connections
-    E -.->|Reads| GPIO_In
-    E -.->|Writes| GPIO_Out
-
-    %% Physical Path
-    D -->|Signal (Interrupt)| GPIO_In
+    D -->|Signal Interrupt| GPIO_In
+    GPIO_In -->|Trigger| E
     
-    %% Output Path
+    E -->|Write Logic| GPIO_Out
     GPIO_Out -->|Control Signal| F
-    F -->|High Voltage Switching| G
+    F -->|High Voltage Switch| G
 
-    %% --- Styling & Classes ---
+    %% --- Class Styles ---
     classDef ui fill:#D4E157,stroke:#333,stroke-width:2px,color:#000;
-    classDef cloud fill:#90CAF9,stroke:#1E88E1,stroke-width:2px,color:#000,rx:5,ry:5;
-    classDef mcu fill:#CE93D8,stroke:#8E24AA,stroke-width:2px,color:#000,rx:10,ry:10;
-    classDef logic fill:#E0E0E0,stroke:#333,stroke-width:1px,stroke-dasharray: 5 5,color:#000,shape:circle;
+    classDef cloud fill:#90CAF9,stroke:#1E88E1,stroke-width:2px,color:#000;
+    classDef mcu fill:#CE93D8,stroke:#8E24AA,stroke-width:2px,color:#000;
+    classDef logic fill:#E0E0E0,stroke:#333,stroke-width:1px,stroke-dasharray: 5 5,color:#000;
     classDef intern fill:#FFF59D,stroke:#FBC02D,stroke-width:1px,color:#000;
     classDef hard fill:#EF9A9A,stroke:#E53935,stroke-width:2px,color:#000;
-
-    %% Add labels on background if needed
-    %% linkStyle 3 stroke:#1E88E1,stroke-width:2px,stroke-dasharray: 5 5;
