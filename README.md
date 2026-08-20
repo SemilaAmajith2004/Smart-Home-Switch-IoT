@@ -19,51 +19,32 @@ An enterprise-grade, hybrid IoT Smart Switch implementation using ESP8266 (NodeM
 The following diagram illustrates the complete end-to-end data flow from User Interfaces to High Voltage Hardware Components:
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#E3F2FD', 'edgeLabelBackground':'#FFFFFF', 'tertiaryColor': '#fff'}}}%%
-
 graph TD
-    subgraph UI [User Interface Layer]
-        A[User Voice Command]:::ui
-        D[Physical Wall Switch\nToggle/Push Button]:::ui
+    %% User Interfaces
+    subgraph UI ["User Control Interfaces"]
+        A[Push Button]
+        B[Mobile App / SinricPro App]
+        C[Voice Assistant - Alexa / Google]
     end
 
-    subgraph Services [Cloud & Connectivity Layer]
-        B{Google Assistant\nNLP & Action}:::cloud
-        C{Sinric Pro\nCloud Platform}:::cloud
-        Hub((Data Hub)):::logic 
+    %% Cloud Services
+    subgraph Cloud ["Cloud Platform"]
+        D[SinricPro Cloud Server]
     end
 
-    subgraph MCU [Control Layer - NodeMCU ESP8266]
-        E(ESP8266 Core\nFirmware Loop):::mcu
-        GPIO_In[GPIO Input\nInterface D2]:::logic
-        GPIO_Out[GPIO Output\nInterface D1]:::logic
-        WiFi[Wi-Fi Stack\nWiFiManager]:::intern
-        WebSocket[WebSocket Client\nSinricPro Lib]:::intern
+    %% Hardware / Firmware
+    subgraph Device ["ESP32 Controller Unit"]
+        E[ESP32 Microcontroller]
+        F[Relay Module]
     end
 
-    subgraph Output [Hardware Layer]
-        F[5V Relay Module\nActive Low/High]:::hard
-        G[230V AC\nLight Bulb]:::hard
-    end
+    %% External Load
+    G[AC Load / Light Bulb]
 
-    A -->|Starts Action| B
-    B -->|API Request| C
-    C -->|Secure Protocol| WebSocket
-
-    WebSocket -->|Data Link| WiFi
-    WiFi <-->|Control & Status| Hub
-    Hub <-->|Sync Commands| E
-
-    D -->|Signal Interrupt| GPIO_In
-    GPIO_In -->|Trigger| E
-    
-    E -->|Write Logic| GPIO_Out
-    GPIO_Out -->|Control Signal| F
-    F -->|High Voltage Switch| G
-
-    classDef ui fill:#D4E157,stroke:#333,stroke-width:2px,color:#000;
-    classDef cloud fill:#90CAF9,stroke:#1E88E1,stroke-width:2px,color:#000;
-    classDef mcu fill:#CE93D8,stroke:#8E24AA,stroke-width:2px,color:#000;
-    classDef logic fill:#E0E0E0,stroke:#333,stroke-width:1px,stroke-dasharray: 5 5,color:#000;
-    classDef intern fill:#FFF59D,stroke:#FBC02D,stroke-width:1px,color:#000;
-    classDef hard fill:#EF9A9A,stroke:#E53935,stroke-width:2px,color:#000;
+    %% Connections
+    A -- "Physical Interrupt (GPIO 4)" --> E
+    C -- "Voice Commands" --> D
+    B -- "Wi-Fi / REST API" --> D
+    D <== "Wi-Fi / WebSockets (Real-time Sync)" ==> E
+    E -- "Relay Driver Signal (GPIO 23)" --> F
+    F -- "High Voltage Switching" --> G
